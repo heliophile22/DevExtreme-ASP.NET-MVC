@@ -1,0 +1,46 @@
+﻿@using DevExtremeAdditionalParamsFiltering.Models
+
+@{
+    ViewBag.Title = "Dynamic Params Filter";
+}
+
+<h6>Passing dynamically generated parameters to the backend for server-side filtering</h6>
+
+<script type="text/javascript">
+    function buildCustomFilters() {
+        var filterCriteria = {};
+        filterCriteria.TenantID = "22";
+        filterCriteria.CompanyID = "1024";
+        return JSON.stringify(filterCriteria);
+    }
+</script>
+
+@(Html.DevExtreme().DataGrid<SampleOrder>()
+    .ShowBorders(true)
+    .DataSource(d => d.WebApi().Controller("SampleData").Key("OrderID")
+         .LoadParams(new { userData = new JS("function() { return buildCustomFilters();  }") })
+    )
+    .Columns(columns => {
+        columns.AddFor(m => m.OrderID);
+        columns.AddFor(m => m.OrderDate);
+        columns.AddFor(m => m.CustomerName);
+        columns.AddFor(m => m.ShipCountry);
+        columns.AddFor(m => m.ShipCity);
+        columns.AddFor(m => m.TenantID);
+        columns.AddFor(m => m.CompanyID);
+    })
+    .Paging(p => p.PageSize(10))
+    .FilterRow(f => f.Visible(true))
+    .HeaderFilter(f => f.Visible(true))
+    .GroupPanel(p => p.Visible(true))
+    .Grouping(g => g.AutoExpandAll(false))
+    .RemoteOperations(true)
+    .Summary(s => s
+        .TotalItems(totalItems => {
+            totalItems.AddFor(m => m.ShipCity).SummaryType(SummaryType.Count);
+        })
+        .GroupItems(groupItems => {
+            groupItems.Add().SummaryType(SummaryType.Count);
+        })
+    )
+)
